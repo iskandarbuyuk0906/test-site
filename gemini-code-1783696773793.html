@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Didaktika Asosiy Kategoriyalari - Test</title>
+    <style>
+        /* Zamonaviy dizayn tizimi */
+        :root {
+            --text-muted: #8a8a93;
+            --accent-blue: #2563eb;
+            --success-70: rgba(34, 197, 94, 0.7); /* 70% Yashil */
+            --danger-70: rgba(239, 68, 68, 0.7);   /* 70% Qizil */
+            --selected-blue: #e0f2fe;
+            --selected-border: #3b82f6;
+        }
+
+        body, html { 
+            margin: 0; 
+            height: 100%; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        #test-pane {
+            background: #ffffff;
+            width: 100%;
+            max-width: 800px;
+            min-height: 550px;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .progress-bar {
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        #question {
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        #options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Variant kartalari */
+        .option-card {
+            padding: 1.25rem 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            line-height: 1.4;
+            font-size: 1.05rem;
+        }
+
+        .option-card:hover:not(.locked) {
+            border-color: #cbd5e1;
+            background-color: #f1f5f9;
+        }
+
+        /* Faqat belgilangan, lekin hali tasdiqlanmagan holat */
+        .option-card.selected {
+            background-color: var(--selected-blue) !important;
+            border-color: var(--selected-border) !important;
+            color: #0369a1 !important;
+        }
+
+        /* Tasdiqlangan ranglar (70% opacity) */
+        .option-card.correct {
+            background-color: var(--success-70) !important;
+            border-color: #22c55e !important;
+            color: white !important;
+        }
+
+        .option-card.wrong {
+            background-color: var(--danger-70) !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+        }
+
+        .option-card.locked {
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Navigatsiya tugmalari konteyneri */
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.9rem 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #cbd5e1;
+        }
+
+        .btn:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="test-pane">
+        <div class="progress-bar">
+            <span id="progress-text"></span>
+        </div>
+        
+        <h2 id="question"></h2>
+        
+        <div id="options-container"></div>
+
+        <div class="button-group">
+            <button id="prev-btn" class="btn btn-secondary">Oldingi savol</button>
+            <button id="action-btn" class="btn btn-primary" disabled>Tasdiqlash</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const testData = [
+        {
+            question: "1. Didaktika pedagogik fan sohasi sifatida nima orqali ifodalanadi?",
+            options: [
+                "A) Tarbiyaviy faoliyatning shakl va vositalari orqali",
+                "B) O‘qitish mohiyatini yorituvchi kategoriya va tushunchalar orqali",
+                "C) Bilimlarni tekshirish usullari va mezonlari orqali",
+                "D) Shaxs rivojlanishining bosqich va qonunlari orqali"
+            ],
+            correct: "B"
+        },
+        {
+            question: "2. Qaysi qatorda maktabgacha pedagogikaning asosiy kategoriyalari to‘g‘ri berilgan?",
+            options: [
+                "A) Ta’lim, bilim, ko‘nikma, malaka, ma’lumot, tarbiya, rivojlanish, shakllanish",
+                "B) Ta’lim, kuzatish, o‘lchash, tajriba, rivojlanish, faoliyat, shakllanish",
+                "C) Bilim, tafakkur, nazariya, tajriba, tarbiya, ma’lumot, rivojlanish",
+                "D) O‘qitish, nazorat, faoliyat, ko‘nikma, tajriba, tarbiya, shakllanish"
+            ],
+            correct: "A"
+        },
+        {
+            question: "3. “Kategoriya” tushunchasining materialdagi ta’rifi qaysi javobda to‘g‘ri ifodalangan?",
+            options: [
+                "A) Ta’lim mazmunini yorituvchi pedagogik faoliyat",
+                "B) Bilimlarni muayyan guruhlarga ajratuvchi tushuncha",
+                "C) Fanning mohiyatini ifodalovchi eng muhim asosiy tushuncha",
+                "D) O‘qitish jarayonini nazorat qiluvchi nazariy qoida"
+            ],
+            correct: "C"
+        },
+        {
+            question: "4. Ta’limning mohiyati qaysi javobda to‘liqroq ochib berilgan?",
+            options: [
+                "A) Tarbiyalanuvchilarning bilimlarni mustaqil egallash faoliyati",
+                "B) Bolaning aqliy faoliyatini nazorat qilish jarayoni",
+                "C) Bilimlarni amalda sinash va tizimlashtirish vositasi",
+                "D) Mutaxassislar yordamida bilim, ko‘nikma va malaka shakllantirish jarayoni"
+            ],
+            correct: "D"
+        },
+        {
+            question: "5. Ta’lim bolaning shaxs sifatida shakllanishida qanday vosita hisoblanadi?",
+            options: [
+                "A) Uni hayot va mehnatga ongli tayyorlash vositasi",
+                "B) Uni ilmiy tadqiqotlarga yo‘naltirish vositasi",
+                "C) Uni atrof-muhitga moslashtirish vositasi",
+                "D) Uni tajriba o‘tkazishga tayyorlash vositasi"
+            ],
+            correct: "A"
+        },
+        {
+            question: "6. Materialga ko‘ra, ta’limning asosiy vazifasi nimadan iborat?",
+            options: [
+                "A) Ta’lim oluvchining faoliyatini nazorat qilishdan",
+                "B) Ta’lim oluvchini o‘qitishdan",
+                "C) Ta’lim oluvchiga ma’lumot to‘plashdan",
+                "D) Ta’lim oluvchini ishlab chiqarishga jalb etishdan"
+            ],
+            correct: "B"
+        },
+        {
+            question: "7. Ta’lim asosiy vazifasidan tashqari yana qanday vazifalarni bajaradi?",
+            options: [
+                "A) Nazariy, emperik va ilmiy bilim berish vazifalarini",
+                "B) Kuzatish, o‘lchash va tajriba o‘tkazish vazifalarini",
+                "C) Oila, ishlab chiqarish va ma’lumot berish vazifalarini",
+                "D) Tarbiyalash, shakllantirish va baholash vazifalarini"
+            ],
+            correct: "D"
+        },
+        {
+            question: "8. Ta’lim berish qanday pedagogik faoliyat sifatida ta’riflangan?",
+            options: [
+                "A) Ta’lim oluvchining intellektual salohiyatini yuksaltirishga qaratilgan faoliyat",
+                "B) Ta’lim beruvchining ilmiy bilimlarini tekshirishga qaratilgan faoliyat",
+                "C) Tarbiyalanuvchining kundalik bilimlarini nazorat qilishga qaratilgan faoliyat",
+                "D) Narsa-hodisalarning sifat ko‘rsatkichlarini aniqlashga qaratilgan faoliyat"
+            ],
+            correct: "A"
+        },
+        {
+            question: "9. Ta’lim berish jarayoni qanday yo‘l bilan amalga oshiriladi?",
+            options: [
+                "A) Kundalik faoliyat shakllarini takrorlash va nazorat qilish orqali",
+                "B) Kuzatish, o‘lchash va tajriba usullaridan foydalanish orqali",
+                "C) Ilmiy tushunchalarni kundalik bilimlardan ajratish orqali",
+                "D) Aqliy faoliyatni rivojlantirish va jarayon mohiyatini anglash orqali"
+            ],
+            correct: "D"
+        },
+        {
+            question: "10. O‘qitish jarayonidagi ta’lim o‘zida nimani ifoda etadi?",
+            options: [
+                "A) Ta’lim beruvchi tomonidan ishlab chiqilgan faoliyat usullarini",
+                "B) Tarbiyalanuvchilar egallagan bilim, ko‘nikma va malakalarni",
+                "C) Jamiyat tomonidan to‘plangan nazariy bilimlar tizimini",
+                "D) Bilish jarayonida aniqlangan qonun va ko‘rsatkichlarni"
+            ],
+            correct: "C"
+        },
+        {
+            question: "11. Bilimning asosiy mazmuni qaysi javobda to‘g‘ri ifodalangan?",
+            options: [
+                "A) Tabiat va jamiyat hodisalarini kundalik kuzatish natijasi",
+                "B) Insonning atrof-muhitga moslashishiga xizmat qiluvchi tajriba",
+                "C) Ilmiy tushunchalarning yaxlit va tizimlashtirilgan majmui",
+                "D) O‘qitish jarayonida hosil qilingan ko‘nikmalar yig‘indisi"
+            ],
+            correct: "C"
+        },
+        {
+            question: "12. Bilim materialda qanday turlarga ajratilgan?",
+            options: [
+                "A) Kundalik, ilmiy, emperik va nazariy bilimlarga",
+                "B) Nazariy, amaliy, tarixiy va ijtimoiy bilimlarga",
+                "C) Kundalik, obyektiv, tizimli va faol bilimlarga",
+                "D) Ilmiy, hayotiy, mantiqiy va tajribaviy bilimlarga"
+            ],
+            correct: "A"
+        },
+        {
+            question: "13. Kundalik bilimning o‘ziga xos xususiyati qaysi javobda berilgan?",
+            options: [
+                "A) Narsa-hodisalar mohiyatiga chuqur kirib borishga asoslanadi",
+                "B) Sog‘lom fikr va kundalik amaliy faoliyatga asoslanadi",
+                "C) Emperik holatlarni qonunlar orqali tushuntirishga asoslanadi",
+                "D) Kuzatish va o‘lchash natijalarini tizimlashtirishga asoslanadi"
+            ],
+            correct: "B"
+        }
+    ];
+
+    let currentIdx = 0;
+    
+    // Foydalanuvchining har bir savolga bergan javob holatlarini saqlash bazasi
+    let userAnswers = Array(testData.length).fill(null); 
+    let isApplied = Array(testData.length).fill(false);
+
+    const progressText = document.getElementById('progress-text');
+    const questionEl = document.getElementById('question');
+    const optionsContainer = document.getElementById('options-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const actionBtn = document.getElementById('action-btn');
+
+    function loadQuestion() {
+        const q = testData[currentIdx];
+        
+        progressText.innerText = `Savol: ${currentIdx + 1} / ${testData.length}`;
+        questionEl.innerText = q.question;
+        optionsContainer.innerHTML = '';
+
+        // Oldingi savol tugmasini birinchi savolda o'chirib qo'yish
+        prevBtn.disabled = currentIdx === 0;
+
+        // Tugma holatini to'g'rilash (Tasdiqlash yoki Keyingisi)
+        if (isApplied[currentIdx]) {
+            actionBtn.innerText = "Keyingi savol";
+            actionBtn.disabled = false;
+        } else {
+            actionBtn.innerText = "Tasdiqlash";
+            actionBtn.disabled = userAnswers[currentIdx] === null;
+        }
+
+        q.options.forEach(option => {
+            const div = document.createElement('div');
+            div.className = 'option-card';
+            div.innerText = option;
+            const letter = option.charAt(0);
+
+            // Agar savol allaqachon tasdiqlangan bo'lsa, natija ranglarini tiklash
+            if (isApplied[currentIdx]) {
+                div.classList.add('locked');
+                if (letter === q.correct) {
+                    div.classList.add('correct');
+                }
+                if (userAnswers[currentIdx] === letter && letter !== q.correct) {
+                    div.classList.add('wrong');
+                }
+            } 
+            // Agar faqat belgilangan, lekin tasdiqlanmagan bo'lsa
+            else if (userAnswers[currentIdx] === letter) {
+                div.classList.add('selected');
+            }
+
+            // Tanlash hodisasi
+            div.addEventListener('click', () => {
+                if (isApplied[currentIdx]) return;
+
+                document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+                div.classList.add('selected');
+                userAnswers[currentIdx] = letter;
+                actionBtn.disabled = false; // Tasdiqlash tugmasini yoqish
+            });
+
+            optionsContainer.appendChild(div);
+        });
+    }
+
+    // Markaziy tugma bosilganda (Tasdiqlash yoki Keyingi savol)
+    actionBtn.addEventListener('click', () => {
+        if (!isApplied[currentIdx]) {
+            // 1. TASDIQLASH BOSILGANDA
+            isApplied[currentIdx] = true;
+            const q = testData[currentIdx];
+            const selectedLetter = userAnswers[currentIdx];
+
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.add('locked');
+                const letter = card.innerText.charAt(0);
+                
+                if (letter === q.correct) {
+                    card.classList.add('correct'); // To'g'ri javob yashil 70%
+                }
+                if (letter === selectedLetter && selectedLetter !== q.correct) {
+                    card.classList.add('wrong'); // Xato javob qizil 70%
+                }
+            });
+
+            actionBtn.innerText = "Keyingi savol";
+        } else {
+            // 2. KEYINGI SAVOL BOSILGANDA
+            currentIdx++;
+            if (currentIdx < testData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+    });
+
+    // OLDINGI SAVOLGA QAYTISH
+    prevBtn.addEventListener('click', () => {
+        if (currentIdx > 0) {
+            currentIdx--;
+            loadQuestion();
+        }
+    });
+
+    function showResults() {
+        let correctCount = 0;
+        testData.forEach((q, index) => {
+            if (userAnswers[index] === q.correct) {
+                correctCount++;
+            }
+        });
+
+        document.getElementById('test-pane').innerHTML = `
+            <div style="text-align: center; margin: auto; padding: 1rem;">
+                <h2 style="font-size: 2.5rem; color: #0f172a; margin-bottom: 0.5rem;">Test Yakunlandi! 🎉</h2>
+                <p style="color: #64748b; font-size: 1.2rem; margin-bottom: 2rem;">Natijangiz muvaffaqiyatli hisoblandi:</p>
+                <div style="font-size: 1.8rem; font-weight: bold; color: var(--accent-blue); background: #eff6ff; padding: 1.5rem; border-radius: 12px; border: 2px dashed #bfdbfe;">
+                    To‘g‘ri javoblar: ${correctCount} / ${testData.length}
+                </div>
+                <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 2rem; align-self: center;">Qayta topshirish</button>
+            </div>`;
+    }
+
+    loadQuestion();
+</script>
+</body>
+</html>
